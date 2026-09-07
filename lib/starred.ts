@@ -95,9 +95,9 @@ export function removeStarredIdea(id: string): SavedIdea[] {
 export function toExcludedIdeas(items: SavedIdea[]): ExcludedIdea[] {
   return items.map(({ id, idea }) => ({
     id,
-    title: idea.title,
-    pitch: idea.pitch,
+    title: idea.title.slice(0, 120),
+    pitch: idea.pitch.slice(0, 400),
     kind: idea.kind,
-    capabilityEquation: idea.capabilityEquation,
+    capabilityEquation: idea.capabilityEquation.slice(0, 300),
   }));
 }
