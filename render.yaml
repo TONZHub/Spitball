@@ -13,6 +13,6 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODEL
-        value: nvidia/nemotron-3.5-lightning:free
+        value: nvidia/nemotron-3.5-lightning
       - key: GITHUB_TOKEN
         sync: false
