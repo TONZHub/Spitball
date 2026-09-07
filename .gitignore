@@ -1,0 +1,18 @@
+# Dependencies and Next.js output
+node_modules/
+.next/
+out/
+coverage/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.DS_Store
+*.log
+
+# Unrelated local Python output
+__pycache__/
+*.pyc

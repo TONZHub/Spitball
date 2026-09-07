@@ -1,0 +1,108 @@
+:root {
+  --paper: #f4edda;
+  --paper-shadow: #dfd3b7;
+  --ink: #242019;
+  --pencil: #686054;
+  --red: #a6332f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: #d8ccb1;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    linear-gradient(90deg, transparent 3.4rem, rgb(166 51 47 / 18%) 3.4rem, rgb(166 51 47 / 18%) 3.5rem, transparent 3.5rem),
+    repeating-linear-gradient(0deg, transparent 0, transparent 1.75rem, rgb(82 119 151 / 12%) 1.75rem, rgb(82 119 151 / 12%) 1.8rem),
+    var(--paper);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+a {
+  color: inherit;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(70rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.25rem 0;
+}
+
+.site-header nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.wordmark {
+  color: var(--red);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 800;
+  text-decoration: none;
+  transform: rotate(-1deg);
+}
+
+main {
+  width: min(70rem, calc(100% - 2rem));
+  margin: 4rem auto;
+}
+
+.placeholder-card {
+  max-width: 46rem;
+  padding: clamp(1.5rem, 5vw, 3.5rem);
+  border: 2px solid var(--ink);
+  border-radius: 0.4rem 0.75rem 0.35rem 0.8rem;
+  background: rgb(255 252 241 / 70%);
+  box-shadow: 0.7rem 0.7rem 0 var(--paper-shadow);
+  transform: rotate(-0.35deg);
+}
+
+.placeholder-card h1 {
+  max-width: 12ch;
+  margin: 0.3rem 0 1rem;
+  font-size: clamp(2.6rem, 8vw, 5.8rem);
+  line-height: 0.92;
+}
+
+.placeholder-card p {
+  font-size: 1.1rem;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  color: var(--red);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.build-note {
+  color: var(--pencil);
+  font-style: italic;
+}
+
+@media (max-width: 40rem) {
+  .site-header {
+    align-items: flex-start;
+  }
+
+  .site-header nav {
+    flex-direction: column;
+    gap: 0.45rem;
+    text-align: right;
+  }
+
+  main {
+    margin-top: 2rem;
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "plugin": "devpost-hackathon",
+  "version": 2,
+  "hackathon": {
+    "slug": "virgo",
+    "name": "Prom Virgo Challenge",
+    "url": "https://virgo.devpost.com",
+    "selected": true,
+    "source": "known"
+  },
+  "participant": {
+    "name": "Zoe Bass",
+    "display_name": "Zoe"
+  },
+  "project": {
+    "name": "Spitball",
+    "summary": "Spitball analyzes README files across a person's usable public GitHub repositories, reflects their demonstrated capabilities, recombines those capabilities into three evidence-grounded hackathon ideas, and performs a lightweight landscape check to suggest differentiation and learning goals.",
+    "ai_usage": "",
+    "codex_usage": ""
+  },
+  "current_stage": "resources",
+  "completed_stages": [
+    "start-hackathon",
+    "review",
+    "resources"
+  ],
+  "rules_acknowledged": true,
+  "learning": {
+    "status": "active",
+    "current_step": "build",
+    "completed_steps": [
+      "onboard",
+      "scope",
+      "prd",
+      "spec",
+      "checklist"
+    ],
+    "plan_file": "docs/hackathon-build/scope.md",
+    "checklist_file": "docs/hackathon-build/checklist.md"
+  },
+  "submission": {
+    "draft_file": "devpost-submission.md",
+    "status": "not-started"
+  },
+  "next_command": "build-project"
+}
