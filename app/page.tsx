@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 
+import { StarButton } from "@/app/components/StarButton";
+import { readStarredIdeas, toExcludedIdeas } from "@/lib/starred";
 import type { Duration, DraftIdea, IdeaKind } from "@/types/spitball";
 
 type PortfolioSummary = {
@@ -70,7 +72,7 @@ export default function HomePage() {
           username: cleanUsername,
           topic: topic.trim() || undefined,
           duration,
-          excludedIdeas: [],
+          excludedIdeas: toExcludedIdeas(readStarredIdeas()),
         }),
       });
 
@@ -221,7 +223,14 @@ export default function HomePage() {
                 <article className={`idea-card idea-${idea.kind}`} key={`${idea.kind}-${idea.title}`}>
                   <div className="idea-heading">
                     <p className="idea-kind">{kindLabels[idea.kind]}</p>
-                    {recommended && <span className="recommendation">★ strongest fit</span>}
+                    <div className="idea-actions">
+                      {recommended && <span className="recommendation">★ strongest fit</span>}
+                      <StarButton
+                        username={result.input.username}
+                        topic={result.input.topic}
+                        idea={idea}
+                      />
+                    </div>
                   </div>
                   <h2>{idea.title}</h2>
                   <p className="pitch">{idea.pitch}</p>
