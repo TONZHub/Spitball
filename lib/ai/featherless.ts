@@ -19,7 +19,7 @@ import type {
   PortfolioRepository,
 } from "@/types/spitball";
 
-const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
+const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const DEFAULT_TIMEOUT_MS = 90_000;
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 
@@ -59,12 +59,19 @@ export class FeatherlessProviderError extends Error {
 }
 
 function readConfig(options: FeatherlessOptions): { apiKey: string; model: string } {
-  const apiKey = options.apiKey?.trim() || process.env.FEATHERLESS_API_KEY?.trim();
-  const model = options.model?.trim() || process.env.FEATHERLESS_MODEL?.trim();
+  const apiKey =
+    options.apiKey?.trim() ||
+    process.env.OPENROUTER_API_KEY?.trim() ||
+    process.env.FEATHERLESS_API_KEY?.trim();
+  const model =
+    options.model?.trim() ||
+    process.env.OPENROUTER_MODEL?.trim() ||
+    process.env.FEATHERLESS_MODEL?.trim();
+
   if (!apiKey || !model) {
     throw new FeatherlessProviderError(
       "FEATHERLESS_UNAVAILABLE",
-      "Featherless is not configured for this deployment.",
+      "The AI provider is not configured for this deployment.",
     );
   }
   return { apiKey, model };
@@ -96,17 +103,22 @@ async function requestCompletion(
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      const response = await fetchImpl(`${FEATHERLESS_BASE_URL}/chat/completions`, {
+      const response = await fetchImpl(`${OPENROUTER_BASE_URL}/chat/completions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://spitball.onrender.com",
+          "X-Title": "Spitball",
         },
         body: JSON.stringify({
           model,
           messages,
           temperature,
           max_tokens: 8_000,
+          provider: {
+            data_collection: "deny",
+          },
         }),
         signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
         cache: "no-store",
@@ -116,7 +128,7 @@ async function requestCompletion(
         if (attempt === 0 && retryable) continue;
         throw new FeatherlessProviderError(
           "FEATHERLESS_UNAVAILABLE",
-          "Featherless could not complete the request.",
+          "The AI provider could not complete the request.",
           { status: response.status, retryable },
         );
       }
@@ -126,7 +138,7 @@ async function requestCompletion(
       if (!content) {
         throw new FeatherlessProviderError(
           "AI_OUTPUT_INVALID",
-          "Featherless returned an empty response.",
+          "The model returned an empty response.",
           { retryable: true },
         );
       }
@@ -136,7 +148,7 @@ async function requestCompletion(
       if (attempt === 0) continue;
       throw new FeatherlessProviderError(
         "FEATHERLESS_UNAVAILABLE",
-        "Featherless could not be reached. Try again.",
+        "The AI provider could not be reached. Try again.",
         { retryable: true, cause: error },
       );
     }
@@ -144,7 +156,7 @@ async function requestCompletion(
 
   throw new FeatherlessProviderError(
     "FEATHERLESS_UNAVAILABLE",
-    "Featherless could not complete the request.",
+    "The AI provider could not complete the request.",
     { retryable: true },
   );
 }
