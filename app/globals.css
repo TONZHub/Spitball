@@ -298,7 +298,8 @@ summary:focus-visible {
   text-decoration: none;
 }
 
-.idea-grid {
+.idea-grid,
+.starred-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
@@ -329,12 +330,53 @@ summary:focus-visible {
   gap: 0.8rem;
 }
 
+.idea-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
 .recommendation {
   display: inline-block;
   color: var(--red);
   font-size: 0.82rem;
   font-weight: 800;
   transform: rotate(1.5deg);
+}
+
+.star-control {
+  display: grid;
+  justify-items: end;
+  gap: 0.3rem;
+}
+
+.star-button,
+.remove-star {
+  min-height: 2.3rem;
+  padding: 0.35rem 0.65rem;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.star-button:hover,
+.remove-star:hover,
+.star-button.starred {
+  color: var(--paper-light);
+  background: var(--red);
+}
+
+.star-button.starred {
+  transform: rotate(-1deg);
+}
+
+.star-error {
+  max-width: 14rem;
+  color: var(--red);
+  text-align: right;
 }
 
 .idea-card h2 {
@@ -372,8 +414,72 @@ summary:focus-visible {
   margin-top: 0.5rem;
 }
 
+.starred-page {
+  display: grid;
+  gap: 2rem;
+}
+
+.starred-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  max-width: 58rem;
+}
+
+.starred-header h1 {
+  margin: 0.35rem 0 0.75rem;
+  font-size: clamp(2.6rem, 7vw, 5.2rem);
+  line-height: 0.95;
+}
+
+.starred-header p:not(.eyebrow) {
+  max-width: 44rem;
+  line-height: 1.6;
+}
+
+.star-count {
+  min-width: 5rem;
+  padding: 0.65rem 0.8rem;
+  border: 2px solid var(--red);
+  color: var(--red);
+  font-weight: 800;
+  text-align: center;
+  transform: rotate(2deg);
+}
+
+.empty-starred {
+  max-width: 42rem;
+  padding: 1.4rem;
+  border: 2px dashed var(--pencil);
+  background: rgb(255 252 241 / 55%);
+  line-height: 1.6;
+}
+
+.empty-starred a {
+  color: var(--red);
+  font-weight: 800;
+}
+
+.saved-idea-card {
+  min-width: 0;
+}
+
+.saved-meta {
+  color: var(--pencil);
+  font-size: 0.9rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.remove-star {
+  color: var(--red);
+  border-color: var(--red);
+}
+
 @media (max-width: 58rem) {
-  .idea-grid {
+  .idea-grid,
+  .starred-grid {
     grid-template-columns: 1fr;
   }
 
@@ -386,7 +492,8 @@ summary:focus-visible {
 }
 
 @media (max-width: 40rem) {
-  .site-header {
+  .site-header,
+  .starred-header {
     align-items: flex-start;
   }
 
@@ -407,6 +514,21 @@ summary:focus-visible {
 
   .hero-card {
     padding: 1.35rem;
+  }
+
+  .idea-heading {
+    flex-direction: column;
+  }
+
+  .idea-actions,
+  .star-control {
+    align-items: flex-start;
+    justify-items: start;
+  }
+
+  .starred-header {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }
 
