@@ -52,7 +52,7 @@ Treat project history as accumulated capability, not as a style guide.
 Return one JSON object only: no Markdown fences, commentary, or text before or after JSON.`;
 
 const isolatedConceptGuard = `You are Spitball's isolated concept generator.
-You are intentionally not given repository names, project titles, README text, product descriptions, original audiences, or visual language. Do not infer or reconstruct them.
+You are intentionally not given repository names, project titles, project pitches, README text, product descriptions, original audiences, or visual language. Do not infer or reconstruct them.
 Generate ideas only from the abstract capability primitives supplied to you. The point of this isolation is to prevent surface imitation of previous work.
 Favor capability transfer across domains over product remixing. Do not generate "X but for Y" concepts.
 Return one JSON object only: no Markdown fences, commentary, or text before or after JSON.`;
@@ -107,7 +107,6 @@ export function buildConceptMessages(input: {
   topic?: string;
   duration: Duration;
   abstractCapabilities: AbstractCapability[];
-  excludedIdeas: ExcludedIdea[];
 }): ChatMessage[] {
   return [
     { role: "system", content: isolatedConceptGuard },
@@ -115,7 +114,7 @@ export function buildConceptMessages(input: {
       role: "user",
       content: `Generate exactly six project candidates from the abstract capabilities below.
 
-You have no access to the builder's previous project forms. Keep it that way: do not guess what they were.
+You have no access to the builder's previous projects or previously generated project pitches. Keep it that way: do not guess what they were.
 
 Generate exactly two candidates of each kind:
 - safest: lowest implementation and learning risk while still being a genuine conceptual transfer; "safe" refers to feasibility, not similarity to prior products
@@ -134,11 +133,6 @@ Diversity rules:
 - capabilityIds must reference only IDs supplied in <abstract_capabilities>
 - transferRationale should explain why these mechanisms become useful in the candidate's new domain
 - the six concepts should feel like six different doors opened by the same accumulated knowledge
-
-Avoid substantial similarity to these already-starred generated ideas:
-<excluded_ideas>
-${JSON.stringify(input.excludedIdeas)}
-</excluded_ideas>
 
 Return this exact top-level shape:
 {
@@ -175,6 +169,7 @@ export function buildGroundingMessages(input: {
   topic?: string;
   duration: Duration;
   repositories: PortfolioRepository[];
+  excludedIdeas: ExcludedIdea[];
   extraction: CapabilityExtractionResult;
   candidates: ConceptCandidateSet;
 }): ChatMessage[] {
@@ -190,6 +185,7 @@ Your job is selection and grounding only:
 - select exactly one safest, one stretch, and one wildcard candidate from the supplied pool
 - prefer the candidate in each kind whose product form, domain, audience, and interaction model are most meaningfully different from the portfolio while still being feasible
 - reject a candidate if it is basically a renamed, adjacent, or "X but for Y" version of an existing project
+- reject a candidate if it is substantially similar to an already-starred generated idea
 - do NOT invent a new concept
 - do NOT rewrite a candidate's title, pitch, problem, primary domain, interaction model, build plan, or capability equation
 - attach exact repository evidence explaining which prior work unlocked the capability to build it
@@ -231,6 +227,10 @@ ${JSON.stringify(input.extraction.abstractCapabilities)}
 <isolated_candidates>
 ${JSON.stringify(input.candidates)}
 </isolated_candidates>
+
+<excluded_ideas>
+${JSON.stringify(input.excludedIdeas)}
+</excluded_ideas>
 
 <portfolio_evidence>
 ${evidencePacket(input.repositories)}
