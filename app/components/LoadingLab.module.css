@@ -1,0 +1,115 @@
+.lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+  gap: 1rem;
+  margin-top: 1.35rem;
+  padding: 1rem;
+  border: 2px dashed var(--ink);
+  background: rgb(255 250 240 / 68%);
+  box-shadow: 0.35rem 0.35rem 0 rgb(166 51 47 / 18%);
+}
+
+.status {
+  min-width: 0;
+  padding: 0.35rem 0.25rem;
+}
+
+.kicker {
+  margin: 0 0 0.65rem;
+  color: var(--red);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.line {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.disclaimer {
+  max-width: 34rem;
+  margin: 0.8rem 0 0;
+  color: var(--pencil);
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.game {
+  position: relative;
+  display: grid;
+  gap: 0.7rem;
+  align-content: start;
+  padding: 0.85rem;
+  border: 2px solid var(--ink);
+  background: var(--paper-light);
+  transform: rotate(0.35deg);
+}
+
+.game::before {
+  content: "";
+  position: absolute;
+  top: -0.45rem;
+  left: 20%;
+  width: 38%;
+  height: 0.8rem;
+  background: rgb(166 51 47 / 22%);
+  transform: rotate(-2deg);
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--red);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.card {
+  min-height: 5.5rem;
+  padding: 0.8rem;
+  border: 1.5px dashed var(--pencil);
+  background: rgb(244 237 218 / 64%);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.button {
+  justify-self: start;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.8rem;
+  border: 2px solid var(--red);
+  color: var(--paper-light);
+  background: var(--red);
+  box-shadow: 0.2rem 0.2rem 0 var(--ink);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.button:hover {
+  transform: translate(-1px, -1px) rotate(-0.5deg);
+  box-shadow: 0.3rem 0.3rem 0 var(--ink);
+}
+
+.game small {
+  color: var(--pencil);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+@media (max-width: 44rem) {
+  .lab {
+    grid-template-columns: 1fr;
+  }
+
+  .game {
+    transform: none;
+  }
+}
