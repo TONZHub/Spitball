@@ -13,7 +13,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODEL
-        value: nvidia/nemotron-3.5-lightning
+        value: z-ai/glm-5.3-flash
       - key: OPENROUTER_CREATIVE_MODEL
         value: deepseek/deepseek-v4-flash-0731
       - key: FEATHERLESS_API_KEY
@@ -21,6 +21,6 @@ services:
       - key: FEATHERLESS_CREATIVE_MODEL
         value: deepseek-ai/DeepSeek-V4-Flash-0731
       - key: FEATHERLESS_MODEL
-        value: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
+        value: zai-org/GLM-5.3-Flash
       - key: GITHUB_TOKEN
         sync: false
