@@ -29,6 +29,7 @@ import type {
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const DEFAULT_TIMEOUT_MS = 90_000;
+const DEFAULT_CREATIVE_MODEL = "deepseek/deepseek-v4-flash-0731";
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const IDEA_ORDER = ["safest", "stretch", "wildcard"] as const;
 
@@ -37,6 +38,7 @@ type FetchLike = typeof fetch;
 type FeatherlessOptions = {
   apiKey?: string;
   model?: string;
+  creativeModel?: string;
   fetchImpl?: FetchLike;
   timeoutMs?: number;
 };
@@ -84,6 +86,18 @@ function readConfig(options: FeatherlessOptions): { apiKey: string; model: strin
     );
   }
   return { apiKey, model };
+}
+
+function readCreativeModel(options: FeatherlessOptions): string {
+  return (
+    options.creativeModel?.trim() ||
+    process.env.OPENROUTER_CREATIVE_MODEL?.trim() ||
+    DEFAULT_CREATIVE_MODEL
+  );
+}
+
+function withModel(options: FeatherlessOptions, model: string): FeatherlessOptions {
+  return { ...options, model };
 }
 
 function extractJson(content: string): unknown {
@@ -326,16 +340,34 @@ export async function draftPortfolioIdeas(
   );
   assertExtractionEvidence(extraction, input.repositories);
 
-  const candidates = await requestValidatedJson(
-    buildConceptMessages({
-      topic: input.topic,
-      duration: input.duration,
-      abstractCapabilities: extraction.abstractCapabilities,
-    }),
-    ConceptCandidateSetSchema,
-    options,
-    0.8,
-  );
+  const baseModel = readConfig(options).model;
+  const creativeModel = readCreativeModel(options);
+  const conceptMessages = buildConceptMessages({
+    topic: input.topic,
+    duration: input.duration,
+    abstractCapabilities: extraction.abstractCapabilities,
+  });
+
+  let candidates: ConceptCandidateSet;
+  try {
+    candidates = await requestValidatedJson(
+      conceptMessages,
+      ConceptCandidateSetSchema,
+      withModel(options, creativeModel),
+      0.95,
+    );
+  } catch (error) {
+    if (!(error instanceof FeatherlessProviderError) || creativeModel === baseModel) {
+      throw error;
+    }
+
+    candidates = await requestValidatedJson(
+      conceptMessages,
+      ConceptCandidateSetSchema,
+      options,
+      0.8,
+    );
+  }
   assertCandidateReferences(candidates, extraction, input.duration);
 
   const grounding = await requestValidatedJson(
