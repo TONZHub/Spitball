@@ -32,7 +32,7 @@ const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_OPENROUTER_CREATIVE_MODEL = "deepseek/deepseek-v4-flash-0731";
 const DEFAULT_FEATHERLESS_CREATIVE_MODEL = "deepseek-ai/DeepSeek-V4-Flash-0731";
-const DEFAULT_FEATHERLESS_BASE_MODEL = "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16";
+const DEFAULT_FEATHERLESS_BASE_MODEL = "zai-org/GLM-5.3-Flash";
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const IDEA_ORDER = ["safest", "stretch", "wildcard"] as const;
 
@@ -479,7 +479,7 @@ export async function draftPortfolioIdeas(
       throw error;
     }
 
-    // Nemotron second, again with OpenRouter -> Featherless provider failover.
+    // GLM 5.3 Flash second, again with OpenRouter -> Featherless provider failover.
     candidates = await requestValidatedJson(
       conceptMessages,
       ConceptCandidateSetSchema,
