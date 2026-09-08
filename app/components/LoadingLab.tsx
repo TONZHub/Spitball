@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import styles from "./LoadingLab.module.css";
+
 const loadingLines = [
   "Reading the receipts from GitHub...",
   "Stripping old project shapes off the useful parts...",
@@ -40,22 +42,24 @@ export function LoadingLab() {
   }
 
   return (
-    <div className="loading-lab">
-      <div className="loading-status" role="status" aria-live="polite">
-        <p className="loading-kicker">Spitball is cooking · {seconds}s</p>
-        <p className="loading-line">{loadingLines[lineIndex]}</p>
-        <p className="loading-disclaimer">The messages rotate with time; they are loading theater, not fake telemetry.</p>
+    <div className={styles.lab}>
+      <div className={styles.status} role="status" aria-live="polite">
+        <p className={styles.kicker}>Spitball is cooking · {seconds}s</p>
+        <p className={styles.line}>{loadingLines[lineIndex]}</p>
+        <p className={styles.disclaimer}>
+          The messages rotate with time; they are loading theater, not fake telemetry.
+        </p>
       </div>
 
-      <div className="shredder-game">
-        <div className="shredder-heading">
+      <div className={styles.game}>
+        <div className={styles.heading}>
           <span>BAD IDEA SHREDDER</span>
           <span>{shredded} destroyed</span>
         </div>
-        <div className="bad-idea-card" key={shredIndex}>
+        <div className={styles.card} key={shredIndex}>
           {badIdeas[shredIndex]}
         </div>
-        <button className="shred-button" type="button" onClick={shredBadIdea}>
+        <button className={styles.button} type="button" onClick={shredBadIdea}>
           SHRED IT
         </button>
         <small>This does not affect the results. It merely improves morale.</small>
