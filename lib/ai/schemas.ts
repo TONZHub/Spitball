@@ -70,10 +70,16 @@ export const AbstractCapabilitySchema = z
   .object({
     id: requiredText(40),
     label: requiredText(160),
-    mechanism: requiredText(700),
+    mechanism: requiredText(700).optional(),
     transferableAssets: z.array(requiredText(300)).min(1).max(6),
   })
-  .strict();
+  .strict()
+  .transform((capability) => ({
+    ...capability,
+    mechanism:
+      capability.mechanism ??
+      `Applies ${capability.label} through ${capability.transferableAssets.slice(0, 3).join(", ")}.`,
+  }));
 
 export const CapabilityExtractionResultSchema = z
   .object({
