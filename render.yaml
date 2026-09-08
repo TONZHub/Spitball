@@ -21,6 +21,6 @@ services:
       - key: FEATHERLESS_CREATIVE_MODEL
         value: deepseek-ai/DeepSeek-V4-Flash-0731
       - key: FEATHERLESS_MODEL
-        value: zai-org/GLM-5.3-Flash
+        value: unsloth/Qwen3.8-27B
       - key: GITHUB_TOKEN
         sync: false
