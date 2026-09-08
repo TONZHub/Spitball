@@ -8,6 +8,8 @@ import { loadPublicPortfolio } from "@/lib/github/portfolio";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const AI_ROUTE_TIMEOUT_MS = 60_000;
+
 function errorResponse(error: unknown) {
   if (error instanceof GitHubProviderError) {
     const status = error.code === "GITHUB_USER_NOT_FOUND" ? 404 : error.code === "GITHUB_RATE_LIMITED" ? 429 : 502;
@@ -18,8 +20,11 @@ function errorResponse(error: unknown) {
   }
 
   if (error instanceof FeatherlessProviderError) {
+    const message = error.message.includes("could not be reached")
+      ? "An AI provider timed out or could not be reached. The fallback chain was exhausted for this run."
+      : error.message;
     return NextResponse.json(
-      { error: error.message, code: error.code, retryable: error.retryable },
+      { error: message, code: error.code, retryable: error.retryable },
       { status: 502 },
     );
   }
@@ -58,13 +63,16 @@ export async function POST(request: Request) {
 
   try {
     const portfolio = await loadPublicPortfolio(input.username);
-    const draft = await draftPortfolioIdeas({
-      username: input.username,
-      topic: input.topic,
-      duration: input.duration,
-      repositories: portfolio.repositories,
-      excludedIdeas: input.excludedIdeas,
-    });
+    const draft = await draftPortfolioIdeas(
+      {
+        username: input.username,
+        topic: input.topic,
+        duration: input.duration,
+        repositories: portfolio.repositories,
+        excludedIdeas: input.excludedIdeas,
+      },
+      { timeoutMs: AI_ROUTE_TIMEOUT_MS },
+    );
 
     return NextResponse.json({
       input: {
