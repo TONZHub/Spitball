@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
+import { LoadingLab } from "@/app/components/LoadingLab";
 import { StarButton } from "@/app/components/StarButton";
 import { readStarredIdeas, toExcludedIdeas } from "@/lib/starred";
 import type { Duration, DraftIdea, IdeaKind } from "@/types/spitball";
@@ -106,11 +107,12 @@ export default function HomePage() {
   return (
     <div className="spitball-shell">
       <section className="hero-card">
-        <p className="eyebrow">Your portfolio becomes the prompt.</p>
+        <p className="eyebrow">Your portfolio becomes the launchpad.</p>
         <h1>What should you build next?</h1>
         <p className="hero-copy">
-          Spitball reads the public README files across your GitHub work, finds the skills you have
-          actually demonstrated, and recombines them into three hackathon-sized ideas.
+          Spitball reads the public README files across your GitHub work, extracts capabilities you
+          have actually demonstrated, and uses them to jump into three buildable directions that do
+          not have to look like your old projects.
         </p>
 
         <form className="spitball-form" onSubmit={submit}>
@@ -163,16 +165,11 @@ export default function HomePage() {
           </p>
 
           <button className="spitball-button" type="submit" disabled={loading}>
-            {loading ? "Reading the evidence..." : "Spitball three ideas"}
+            {loading ? "Spitball is cooking..." : "Spitball three ideas"}
           </button>
         </form>
 
-        {loading && (
-          <div className="scan-note" role="status">
-            <strong>Portfolio scan in progress.</strong>
-            <span> GitHub evidence → DeepSeek first → Nemotron second, with Featherless fallback.</span>
-          </div>
-        )}
+        {loading && <LoadingLab />}
 
         {error && (
           <div className="error-note" role="alert">
