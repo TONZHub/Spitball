@@ -14,5 +14,7 @@ services:
         sync: false
       - key: OPENROUTER_MODEL
         value: nvidia/nemotron-3.5-lightning
+      - key: OPENROUTER_CREATIVE_MODEL
+        value: deepseek/deepseek-v4-flash-0731
       - key: GITHUB_TOKEN
         sync: false
