@@ -137,7 +137,7 @@ function stagedFetch(contents: string[]) {
 }
 
 describe("Featherless structured reasoning", () => {
-  it("keeps concept generation behind a real abstraction barrier", async () => {
+  it("keeps concept generation behind a real abstraction barrier and routes it to the creative model", async () => {
     const bodies: string[] = [];
     const outputs = [validExtraction, validCandidates, validGrounding].map((value) => JSON.stringify(value));
     let index = 0;
@@ -150,13 +150,22 @@ describe("Featherless structured reasoning", () => {
 
     const result = await draftPortfolioIdeas(
       { username: "tester", topic: "education", duration: "one-week", repositories: [repository], excludedIdeas: [] },
-      { apiKey: "test-key", model: "test-model", fetchImpl },
+      { apiKey: "test-key", model: "test-model", creativeModel: "creative-test-model", fetchImpl },
     );
 
     expect(result.ideas.map(({ kind }) => kind)).toEqual(["safest", "stretch", "wildcard"]);
     expect(result.ideas[0].title).toBe("Constraint Lab");
     expect(result.preliminaryRecommendationKind).toBe("stretch");
     expect(fetchImpl).toHaveBeenCalledTimes(3);
+
+    const parsedBodies = bodies.map(
+      (body) => JSON.parse(body) as { model: string; messages: Array<{ content: string }> },
+    );
+    expect(parsedBodies.map(({ model }) => model)).toEqual([
+      "test-model",
+      "creative-test-model",
+      "test-model",
+    ]);
 
     const conceptRequest = bodies[1];
     expect(conceptRequest).toContain("cap-1");
