@@ -42,6 +42,67 @@ export type EvidenceClaim = {
   repositoryNames: string[];
 };
 
+export type BuilderProfile = {
+  summary: string;
+  themes: EvidenceClaim[];
+  capabilities: EvidenceClaim[];
+};
+
+export type AbstractCapability = {
+  id: string;
+  label: string;
+  mechanism: string;
+  transferableAssets: string[];
+};
+
+export type CapabilityExtractionResult = {
+  builderProfile: BuilderProfile;
+  abstractCapabilities: AbstractCapability[];
+};
+
+export type ConceptCandidate = {
+  id: string;
+  kind: IdeaKind;
+  title: string;
+  pitch: string;
+  problem: string;
+  primaryDomain: string;
+  interactionModel: string;
+  capabilityIds: string[];
+  capabilityEquation: string;
+  transferRationale: string;
+  learningGoals: string[];
+  duration: Duration;
+  buildPlan: Array<{
+    label: string;
+    outcome: string;
+  }>;
+  definitionOfDone: string[];
+  searchQuery: string;
+};
+
+export type ConceptCandidateSet = {
+  candidates: ConceptCandidate[];
+};
+
+export type GroundingSelection = {
+  sourceCandidateId: string;
+  kind: IdeaKind;
+  whyThisBuilder: string;
+  evidence: Array<{
+    repositoryName: string;
+    repositoryUrl: string;
+    contribution: string;
+  }>;
+  reusablePieces: string[];
+  topicFit?: string;
+};
+
+export type GroundingSelectionResult = {
+  selections: GroundingSelection[];
+  preliminaryRecommendationKind: IdeaKind;
+};
+
 export type LandscapeProject = {
   name: string;
   url: string;
@@ -98,11 +159,7 @@ export type SpitballRun = {
     }>;
     evidenceLevel: "limited" | "standard";
   };
-  builderProfile: {
-    summary: string;
-    themes: EvidenceClaim[];
-    capabilities: EvidenceClaim[];
-  };
+  builderProfile: BuilderProfile;
   ideas: [SpitballIdea, SpitballIdea, SpitballIdea];
   recommendationId: string;
 };
@@ -139,7 +196,7 @@ export type DraftIdea = Omit<SpitballIdea, "id" | "landscape" | "recommendationR
 };
 
 export type DraftPortfolioResult = {
-  builderProfile: SpitballRun["builderProfile"];
+  builderProfile: BuilderProfile;
   ideas: [DraftIdea, DraftIdea, DraftIdea];
   preliminaryRecommendationKind: IdeaKind;
 };
@@ -162,7 +219,7 @@ export type LandscapeSearchBundle = {
 export type FinalIdea = Omit<SpitballIdea, "id" | "recommendationReason">;
 
 export type FinalPortfolioResult = {
-  builderProfile: SpitballRun["builderProfile"];
+  builderProfile: BuilderProfile;
   ideas: [FinalIdea, FinalIdea, FinalIdea];
   recommendationKind: IdeaKind;
   recommendationReason: string;
