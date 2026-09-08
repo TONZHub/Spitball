@@ -29,7 +29,7 @@ import type {
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const FEATHERLESS_BASE_URL = "https://api.featherless.ai/v1";
-const DEFAULT_TIMEOUT_MS = 90_000;
+const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_OPENROUTER_CREATIVE_MODEL = "deepseek/deepseek-v4-flash-0731";
 const DEFAULT_FEATHERLESS_CREATIVE_MODEL = "deepseek-ai/DeepSeek-V4-Flash-0731";
 const DEFAULT_FEATHERLESS_BASE_MODEL = "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16";
@@ -197,87 +197,72 @@ async function requestFromRoute(
   temperature: number,
 ): Promise<string> {
   const fetchImpl = options.fetchImpl ?? fetch;
-  let lastRetryableError: FeatherlessProviderError | undefined;
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      const body: Record<string, unknown> = {
-        model: route.model,
-        messages,
-        temperature,
-        max_tokens: 8_000,
-      };
-      if (route.provider === "openrouter") {
-        body.provider = { data_collection: "deny" };
-      }
+  try {
+    const body: Record<string, unknown> = {
+      model: route.model,
+      messages,
+      temperature,
+      max_tokens: 8_000,
+    };
+    if (route.provider === "openrouter") {
+      body.provider = { data_collection: "deny" };
+    }
 
-      const response = await fetchImpl(`${route.baseUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${route.apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://spitball.onrender.com",
-          "X-Title": "Spitball",
-        },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
-        cache: "no-store",
-      });
+    const response = await fetchImpl(`${route.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${route.apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://spitball.onrender.com",
+        "X-Title": "Spitball",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+      cache: "no-store",
+    });
 
-      if (!response.ok) {
-        const retryable = RETRYABLE_STATUSES.has(response.status);
-        const providerError = new FeatherlessProviderError(
-          "FEATHERLESS_UNAVAILABLE",
-          `${route.provider} could not complete the request.`,
-          { status: response.status, retryable },
-        );
-        if (retryable && attempt === 0) {
-          lastRetryableError = providerError;
-          continue;
-        }
-        throw providerError;
-      }
-
-      const responseBody = (await response.json()) as ChatCompletionResponse;
-      const content = responseBody.choices?.[0]?.message?.content;
-      if (!content) {
-        throw new FeatherlessProviderError(
-          "AI_OUTPUT_INVALID",
-          `${route.provider} returned an empty response.`,
-          { retryable: true },
-        );
-      }
-      return content;
-    } catch (error) {
-      if (error instanceof FeatherlessProviderError) {
-        if (error.code === "FEATHERLESS_UNAVAILABLE" && error.retryable && attempt === 0) {
-          lastRetryableError = error;
-          continue;
-        }
-        throw error;
-      }
-
-      const networkError = new FeatherlessProviderError(
+    if (!response.ok) {
+      const retryable = RETRYABLE_STATUSES.has(response.status);
+      throw new FeatherlessProviderError(
         "FEATHERLESS_UNAVAILABLE",
-        `${route.provider} could not be reached.`,
+        `${route.provider} could not complete the request.`,
+        { status: response.status, retryable },
+      );
+    }
+
+    const responseText = await response.text();
+    let responseBody: ChatCompletionResponse;
+    try {
+      responseBody = JSON.parse(responseText) as ChatCompletionResponse;
+    } catch (error) {
+      throw new FeatherlessProviderError(
+        "FEATHERLESS_UNAVAILABLE",
+        `${route.provider} returned a non-JSON API response.`,
         { retryable: true, cause: error },
       );
-      if (attempt === 0) {
-        lastRetryableError = networkError;
-        continue;
-      }
-      throw networkError;
     }
-  }
 
-  throw (
-    lastRetryableError ??
-    new FeatherlessProviderError(
+    const content = responseBody.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new FeatherlessProviderError(
+        "FEATHERLESS_UNAVAILABLE",
+        `${route.provider} returned an empty completion.`,
+        { retryable: true },
+      );
+    }
+    return content;
+  } catch (error) {
+    if (error instanceof FeatherlessProviderError) {
+      throw error;
+    }
+
+    throw new FeatherlessProviderError(
       "FEATHERLESS_UNAVAILABLE",
-      `${route.provider} could not complete the request.`,
-      { retryable: true },
-    )
-  );
+      `${route.provider} could not be reached.`,
+      { retryable: true, cause: error },
+    );
+  }
 }
 
 async function requestCompletion(
