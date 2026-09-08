@@ -58,6 +58,149 @@ export const EvidenceClaimSchema = z
   })
   .strict();
 
+const BuilderProfileSchema = z
+  .object({
+    summary: requiredText(2_000),
+    themes: z.array(EvidenceClaimSchema).min(1).max(4),
+    capabilities: z.array(EvidenceClaimSchema).min(1).max(6),
+  })
+  .strict();
+
+export const AbstractCapabilitySchema = z
+  .object({
+    id: requiredText(40),
+    label: requiredText(160),
+    mechanism: requiredText(700),
+    transferableAssets: z.array(requiredText(300)).min(1).max(6),
+  })
+  .strict();
+
+export const CapabilityExtractionResultSchema = z
+  .object({
+    builderProfile: BuilderProfileSchema,
+    abstractCapabilities: z.array(AbstractCapabilitySchema).min(2).max(8),
+  })
+  .strict()
+  .superRefine((result, context) => {
+    const ids = new Set(result.abstractCapabilities.map((capability) => capability.id));
+    if (ids.size !== result.abstractCapabilities.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["abstractCapabilities"],
+        message: "Abstract capability IDs must be unique",
+      });
+    }
+  });
+
+export const ConceptCandidateSchema = z
+  .object({
+    id: requiredText(40),
+    kind: IdeaKindSchema,
+    title: requiredText(120),
+    pitch: requiredText(500),
+    problem: requiredText(1_500),
+    primaryDomain: requiredText(120),
+    interactionModel: requiredText(160),
+    capabilityIds: z.array(requiredText(40)).min(1).max(4),
+    capabilityEquation: requiredText(500),
+    transferRationale: requiredText(1_000),
+    learningGoals: z.array(requiredText(500)).min(1).max(10),
+    duration: DurationSchema,
+    buildPlan: z
+      .array(
+        z.object({ label: requiredText(120), outcome: requiredText(800) }).strict(),
+      )
+      .min(1)
+      .max(12),
+    definitionOfDone: z.array(requiredText(500)).min(1).max(12),
+    searchQuery: requiredText(160),
+  })
+  .strict();
+
+export const ConceptCandidateSetSchema = z
+  .object({
+    candidates: z.array(ConceptCandidateSchema).length(6),
+  })
+  .strict()
+  .superRefine((result, context) => {
+    const ids = new Set(result.candidates.map((candidate) => candidate.id));
+    if (ids.size !== result.candidates.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["candidates"],
+        message: "Candidate IDs must be unique",
+      });
+    }
+
+    for (const kind of IDEA_KIND_VALUES) {
+      const count = result.candidates.filter((candidate) => candidate.kind === kind).length;
+      if (count !== 2) {
+        context.addIssue({
+          code: "custom",
+          path: ["candidates"],
+          message: `Candidate set must contain exactly two ${kind} ideas`,
+        });
+      }
+    }
+
+    const domains = new Set(result.candidates.map((candidate) => candidate.primaryDomain.toLowerCase()));
+    if (domains.size !== result.candidates.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["candidates"],
+        message: "Each candidate must use a different primary domain",
+      });
+    }
+  });
+
+export const GroundingSelectionSchema = z
+  .object({
+    sourceCandidateId: requiredText(40),
+    kind: IdeaKindSchema,
+    whyThisBuilder: requiredText(1_500),
+    evidence: z
+      .array(
+        z
+          .object({
+            repositoryName: requiredText(100),
+            repositoryUrl: githubUrl,
+            contribution: requiredText(800),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(25),
+    reusablePieces: z.array(requiredText(500)).min(1).max(12),
+    topicFit: requiredText(800).optional(),
+  })
+  .strict();
+
+export const GroundingSelectionResultSchema = z
+  .object({
+    selections: z.array(GroundingSelectionSchema).length(3),
+    preliminaryRecommendationKind: IdeaKindSchema,
+  })
+  .strict()
+  .superRefine((result, context) => {
+    const kinds = new Set(result.selections.map((selection) => selection.kind));
+    if (kinds.size !== 3 || IDEA_KIND_VALUES.some((kind) => !kinds.has(kind))) {
+      context.addIssue({
+        code: "custom",
+        path: ["selections"],
+        message: "Grounding must select one idea of each kind",
+      });
+    }
+
+    const ids = new Set(result.selections.map((selection) => selection.sourceCandidateId));
+    if (ids.size !== result.selections.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["selections"],
+        message: "Grounding selections must reference unique candidates",
+      });
+    }
+  });
+
 export const LandscapeProjectSchema = z
   .object({
     name: requiredText(200),
@@ -134,13 +277,7 @@ export const SpitballRunSchema = z
         evidenceLevel: z.enum(["limited", "standard"]),
       })
       .strict(),
-    builderProfile: z
-      .object({
-        summary: requiredText(2_000),
-        themes: z.array(EvidenceClaimSchema).min(1).max(4),
-        capabilities: z.array(EvidenceClaimSchema).min(1).max(6),
-      })
-      .strict(),
+    builderProfile: BuilderProfileSchema,
     ideas: z.tuple([SpitballIdeaSchema, SpitballIdeaSchema, SpitballIdeaSchema]),
     recommendationId: requiredText(100),
   })
@@ -225,13 +362,7 @@ export const DraftIdeaSchema = SpitballIdeaSchema.omit({
 
 export const DraftPortfolioResultSchema = z
   .object({
-    builderProfile: z
-      .object({
-        summary: requiredText(2_000),
-        themes: z.array(EvidenceClaimSchema).min(1).max(4),
-        capabilities: z.array(EvidenceClaimSchema).min(1).max(6),
-      })
-      .strict(),
+    builderProfile: BuilderProfileSchema,
     ideas: z.tuple([DraftIdeaSchema, DraftIdeaSchema, DraftIdeaSchema]),
     preliminaryRecommendationKind: IdeaKindSchema,
   })
@@ -254,13 +385,7 @@ export const FinalIdeaSchema = SpitballIdeaSchema.omit({
 
 export const FinalPortfolioResultSchema = z
   .object({
-    builderProfile: z
-      .object({
-        summary: requiredText(2_000),
-        themes: z.array(EvidenceClaimSchema).min(1).max(4),
-        capabilities: z.array(EvidenceClaimSchema).min(1).max(6),
-      })
-      .strict(),
+    builderProfile: BuilderProfileSchema,
     ideas: z.tuple([FinalIdeaSchema, FinalIdeaSchema, FinalIdeaSchema]),
     recommendationKind: IdeaKindSchema,
     recommendationReason: requiredText(1_000),
