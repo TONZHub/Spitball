@@ -125,7 +125,7 @@ export const ConceptCandidateSchema = z
 
 export const ConceptCandidateSetSchema = z
   .object({
-    candidates: z.array(ConceptCandidateSchema).length(6),
+    candidates: z.array(ConceptCandidateSchema).length(3),
   })
   .strict()
   .superRefine((result, context) => {
@@ -140,11 +140,11 @@ export const ConceptCandidateSetSchema = z
 
     for (const kind of IDEA_KIND_VALUES) {
       const count = result.candidates.filter((candidate) => candidate.kind === kind).length;
-      if (count !== 2) {
+      if (count !== 1) {
         context.addIssue({
           code: "custom",
           path: ["candidates"],
-          message: `Candidate set must contain exactly two ${kind} ideas`,
+          message: `Candidate set must contain exactly one ${kind} idea`,
         });
       }
     }
