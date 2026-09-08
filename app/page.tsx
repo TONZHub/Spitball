@@ -76,9 +76,23 @@ export default function HomePage() {
         }),
       });
 
-      const payload = await response.json();
+      const responseText = await response.text();
+      let payload: unknown;
+      try {
+        payload = responseText ? JSON.parse(responseText) : null;
+      } catch {
+        const status = `${response.status}${response.statusText ? ` ${response.statusText}` : ""}`;
+        throw new Error(
+          `Spitball's host returned a non-JSON response (${status}). This is usually a temporary host or upstream timeout; try again in a moment.`,
+        );
+      }
+
       if (!response.ok) {
-        throw new Error(payload?.error || "Spitball could not complete that run.");
+        const message =
+          payload && typeof payload === "object" && "error" in payload
+            ? String((payload as { error?: unknown }).error || "")
+            : "";
+        throw new Error(message || `Spitball could not complete that run (${response.status}).`);
       }
 
       setResult(payload as SpitballResponse);
@@ -156,7 +170,7 @@ export default function HomePage() {
         {loading && (
           <div className="scan-note" role="status">
             <strong>Portfolio scan in progress.</strong>
-            <span> GitHub first, Nemotron second. No generic idea soup.</span>
+            <span> GitHub evidence → DeepSeek first → Nemotron second, with Featherless fallback.</span>
           </div>
         )}
 
