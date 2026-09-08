@@ -69,11 +69,8 @@ function candidate(
 const validCandidates = {
   candidates: [
     candidate("s1", "safest", "Constraint Lab", "civic infrastructure", "scenario simulator"),
-    candidate("s2", "safest", "Field Note Relay", "ecology fieldwork", "offline capture relay"),
     candidate("t1", "stretch", "Museum Provenance Game", "museum interpretation", "collaborative tabletop game"),
-    candidate("t2", "stretch", "Kitchen Experiment Bench", "food science", "guided physical experiment"),
     candidate("w1", "wildcard", "Repair Evidence Lens", "appliance repair", "visual diagnostic workspace"),
-    candidate("w2", "wildcard", "Neighborhood Memory Atlas", "local history", "participatory map"),
   ],
 };
 
@@ -168,6 +165,7 @@ describe("Featherless structured reasoning", () => {
     ]);
 
     const conceptRequest = bodies[1];
+    expect(conceptRequest).toContain("exactly three project candidates");
     expect(conceptRequest).toContain("cap-1");
     expect(conceptRequest).not.toContain("EvidenceApp");
     expect(conceptRequest).not.toContain("https://github.com/tester/EvidenceApp");
