@@ -5,7 +5,7 @@ import { useState, type FormEvent } from "react";
 import { LoadingLab } from "@/app/components/LoadingLab";
 import { StarButton } from "@/app/components/StarButton";
 import { readStarredIdeas, toExcludedIdeas } from "@/lib/starred";
-import type { Duration, DraftIdea, IdeaKind } from "@/types/spitball";
+import type { BuildDuration, DraftIdea, IdeaKind } from "@/types/spitball";
 
 type PortfolioSummary = {
   consideredCount: number;
@@ -25,7 +25,7 @@ type BuilderProfile = {
 };
 
 type SpitballResponse = {
-  input: { username: string; topic?: string; duration: Duration };
+  input: { username: string; topic?: string; duration: BuildDuration };
   portfolio: PortfolioSummary;
   builderProfile: BuilderProfile;
   ideas: [DraftIdea, DraftIdea, DraftIdea];
@@ -35,9 +35,10 @@ type SpitballResponse = {
   fallbackDetail?: string;
 };
 
-const durationLabels: Record<Duration, string> = {
+const durationLabels: Record<BuildDuration, string> = {
   weekend: "Weekend",
   "one-week": "One week",
+  "two-weeks": "Two weeks",
   "one-month": "One month",
   "over-one-month": "More than one month",
 };
@@ -51,7 +52,7 @@ const kindLabels: Record<IdeaKind, string> = {
 export default function HomePage() {
   const [username, setUsername] = useState("");
   const [topic, setTopic] = useState("");
-  const [duration, setDuration] = useState<Duration>("one-week");
+  const [duration, setDuration] = useState<BuildDuration>("one-week");
   const [result, setResult] = useState<SpitballResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -146,7 +147,7 @@ export default function HomePage() {
           <fieldset>
             <legend>How much time do you have?</legend>
             <div className="duration-grid">
-              {(Object.keys(durationLabels) as Duration[]).map((value) => (
+              {(Object.keys(durationLabels) as BuildDuration[]).map((value) => (
                 <label className={`duration-option ${duration === value ? "selected" : ""}`} key={value}>
                   <input
                     type="radio"

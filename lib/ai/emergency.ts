@@ -1,7 +1,7 @@
 import type {
+  BuildDuration,
   DraftIdea,
   DraftPortfolioResult,
-  Duration,
   IdeaKind,
   PortfolioRepository,
 } from "@/types/spitball";
@@ -39,7 +39,7 @@ function evidenceFor(repositories: PortfolioRepository[]) {
   }));
 }
 
-function planFor(duration: Duration, interaction: string) {
+function planFor(duration: BuildDuration, interaction: string) {
   const first = {
     label: "Make the smallest loop",
     outcome: `Build one end-to-end ${interaction} interaction with hardcoded sample content before adding breadth.`,
@@ -65,7 +65,7 @@ function buildIdea(input: {
   why: string;
   interaction: string;
   learningGoal: string;
-  duration: Duration;
+  duration: BuildDuration;
   topic?: string;
   repositories: PortfolioRepository[];
   query: string;
@@ -93,7 +93,7 @@ function buildIdea(input: {
 
 export function buildEmergencyDraft(input: {
   topic?: string;
-  duration: Duration;
+  duration: BuildDuration;
   repositories: PortfolioRepository[];
 }): DraftPortfolioResult {
   const subject = topicLabel(input.topic);

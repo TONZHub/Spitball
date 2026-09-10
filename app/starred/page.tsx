@@ -9,12 +9,20 @@ import {
   removeStarredIdea,
   type SavedIdea,
 } from "@/lib/starred";
-import type { IdeaKind } from "@/types/spitball";
+import type { BuildDuration, IdeaKind } from "@/types/spitball";
 
 const kindLabels: Record<IdeaKind, string> = {
   safest: "Safest Bet",
   stretch: "Interesting Stretch",
   wildcard: "Wild Card",
+};
+
+const durationLabels: Record<BuildDuration, string> = {
+  weekend: "Weekend",
+  "one-week": "One week",
+  "two-weeks": "Two weeks",
+  "one-month": "One month",
+  "over-one-month": "More than one month",
 };
 
 export default function StarredPage() {
@@ -70,7 +78,7 @@ export default function StarredPage() {
               <p className="saved-meta">
                 From @{saved.username}
                 {saved.topic ? ` · ${saved.topic}` : ""}
-                {` · ${saved.idea.duration}`}
+                {` · ${durationLabels[saved.idea.duration]}`}
               </p>
 
               <div className="idea-section">
