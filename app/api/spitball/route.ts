@@ -11,8 +11,20 @@ import type { DraftPortfolioResult, ExcludedIdea, PortfolioRepository } from "@/
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const AI_PROVIDER_TIMEOUT_MS = 25_000;
+const AI_PROVIDER_TIMEOUT_MS = 60_000;
 const ANSWER_DEADLINE_MS = 90_000;
+const FEATHERLESS_FAST_MODEL = "unsloth/Qwen3.8-27B";
+const OPENROUTER_FAST_MODEL = "z-ai/glm-5.3-flash";
+
+// The Grok workspace that inspired the current generator does not abort its model
+// request after a tiny fixed window. The generator still carries its old 25s signal,
+// so replace that signal here with the route-level budget while keeping the rest of
+// the request exactly as constructed.
+const aiFetch: typeof fetch = (input, init) =>
+  fetch(input, {
+    ...init,
+    signal: AbortSignal.timeout(AI_PROVIDER_TIMEOUT_MS),
+  });
 
 type GenerationMode = "ai" | "fallback";
 type FallbackReason = "provider-error" | "deadline";
@@ -39,10 +51,17 @@ async function resilientDraft(input: {
 
   const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeasGrokShaped(input, {
     timeoutMs: AI_PROVIDER_TIMEOUT_MS,
+    featherlessModel: process.env.FEATHERLESS_MODEL?.trim() || FEATHERLESS_FAST_MODEL,
+    openRouterModel: process.env.OPENROUTER_MODEL?.trim() || OPENROUTER_FAST_MODEL,
+    fetchImpl: aiFetch,
   })
     .then((draft) => ({ draft, generationMode: "ai" as const }))
     .catch((error) => {
-      const detail = error instanceof Error ? error.message : "Unknown AI provider failure";
+      const rawDetail = error instanceof Error ? error.message : "Unknown AI provider failure";
+      // The inner generator still labels its own legacy timeout as 25s. The injected
+      // fetch above is authoritative, so keep diagnostics truthful until that legacy
+      // constant is removed in a later cleanup.
+      const detail = rawDetail.replaceAll("25s timeout", `${AI_PROVIDER_TIMEOUT_MS / 1000}s timeout`);
       console.warn("Spitball AI generation degraded to deterministic ideas", detail);
       return {
         draft: emergency,
