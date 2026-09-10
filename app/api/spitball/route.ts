@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { buildEmergencyDraft } from "@/lib/ai/emergency";
-import { draftPortfolioIdeas, FeatherlessProviderError } from "@/lib/ai/featherless";
+import { FeatherlessProviderError } from "@/lib/ai/featherless";
+import { draftPortfolioIdeasSimple } from "@/lib/ai/simple-draft";
 import { SpitballRequestSchema } from "@/lib/ai/schemas";
 import { GitHubProviderError } from "@/lib/github/client";
 import { loadPublicPortfolio } from "@/lib/github/portfolio";
@@ -35,7 +36,7 @@ async function resilientDraft(input: {
     repositories: input.repositories,
   });
 
-  const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeas(input, {
+  const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeasSimple(input, {
     timeoutMs: AI_PROVIDER_TIMEOUT_MS,
   })
     .then((draft) => ({ draft, generationMode: "ai" as const }))
