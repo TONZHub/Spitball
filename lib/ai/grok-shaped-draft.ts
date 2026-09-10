@@ -1,9 +1,9 @@
 import { FeatherlessProviderError } from "./featherless";
 import type {
   BuilderProfile,
+  BuildDuration,
   DraftIdea,
   DraftPortfolioResult,
-  Duration,
   ExcludedIdea,
   IdeaKind,
   PortfolioRepository,
@@ -16,9 +16,10 @@ const DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-v4-flash-0731";
 const PROVIDER_TIMEOUT_MS = 25_000;
 const IDEA_ORDER: IdeaKind[] = ["safest", "stretch", "wildcard"];
 
-const durationLabels: Record<Duration, string> = {
+const durationLabels: Record<BuildDuration, string> = {
   weekend: "a weekend",
   "one-week": "one week",
+  "two-weeks": "two weeks",
   "one-month": "one month",
   "over-one-month": "more than one month",
 };
@@ -145,7 +146,7 @@ function portfolioPacket(repositories: PortfolioRepository[]): string {
 
 function promptFor(input: {
   topic?: string;
-  duration: Duration;
+  duration: BuildDuration;
   repositories: PortfolioRepository[];
   excludedIdeas: ExcludedIdea[];
 }) {
@@ -336,7 +337,7 @@ function pickIdeas(rawIdeas: RawIdea[], repositories: PortfolioRepository[]): Ar
   });
 }
 
-function planFrom(raw: unknown, duration: Duration, interaction: string): DraftIdea["buildPlan"] {
+function planFrom(raw: unknown, duration: BuildDuration, interaction: string): DraftIdea["buildPlan"] {
   if (Array.isArray(raw)) {
     const parsed = raw
       .map((item) => {
@@ -363,7 +364,7 @@ function normalize(
   envelope: Envelope,
   input: {
     topic?: string;
-    duration: Duration;
+    duration: BuildDuration;
     repositories: PortfolioRepository[];
   },
 ): DraftPortfolioResult {
@@ -436,7 +437,7 @@ export async function draftPortfolioIdeasGrokShaped(
   input: {
     username: string;
     topic?: string;
-    duration: Duration;
+    duration: BuildDuration;
     repositories: PortfolioRepository[];
     excludedIdeas: ExcludedIdea[];
   },
