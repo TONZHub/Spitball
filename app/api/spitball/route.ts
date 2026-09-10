@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const AI_PROVIDER_TIMEOUT_MS = 25_000;
-const ANSWER_DEADLINE_MS = 35_000;
+const ANSWER_DEADLINE_MS = 90_000;
 
 type GenerationMode = "ai" | "fallback";
 type FallbackReason = "provider-error" | "deadline";
