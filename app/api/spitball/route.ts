@@ -13,18 +13,48 @@ export const dynamic = "force-dynamic";
 
 const AI_PROVIDER_TIMEOUT_MS = 60_000;
 const ANSWER_DEADLINE_MS = 90_000;
-const FEATHERLESS_FAST_MODEL = "unsloth/Qwen3.8-27B";
-const OPENROUTER_FAST_MODEL = "z-ai/glm-5.3-flash";
 
-// The Grok workspace that inspired the current generator does not abort its model
-// request after a tiny fixed window. The generator still carries its old 25s signal,
-// so replace that signal here with the route-level budget while keeping the rest of
-// the request exactly as constructed.
-const aiFetch: typeof fetch = (input, init) =>
-  fetch(input, {
+// Keep Spitball's model choices separate from the generic provider env vars. Those
+// vars are shared with older experiments and can point at a route that is currently
+// overloaded or poorly suited to short structured generation.
+const FEATHERLESS_RELIABLE_MODEL = "deepseek-ai/DeepSeek-V4-Flash-0731";
+const OPENROUTER_RELIABLE_MODEL = "qwen/qwen3.8-27b";
+
+// The generator still owns the common OpenAI-compatible request shape. This wrapper
+// applies provider-specific reliability knobs without duplicating the prompt/parser.
+const aiFetch: typeof fetch = (input, init) => {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+  let body = init?.body;
+
+  if (typeof body === "string") {
+    try {
+      const payload = JSON.parse(body) as Record<string, unknown>;
+      payload.max_tokens = 3_600;
+
+      if (url.includes("openrouter.ai")) {
+        // Qwen can answer this without a long hidden-thought budget. OpenRouter will
+        // also choose a fast endpoint that actually supports JSON response_format.
+        payload.reasoning = { effort: "none" };
+        payload.provider = {
+          sort: "throughput",
+          allow_fallbacks: true,
+          require_parameters: true,
+        };
+      }
+
+      body = JSON.stringify(payload);
+    } catch {
+      // Leave an unexpected body untouched; the upstream error will be surfaced by
+      // the generator's existing diagnostics.
+    }
+  }
+
+  return fetch(input, {
     ...init,
+    body,
     signal: AbortSignal.timeout(AI_PROVIDER_TIMEOUT_MS),
   });
+};
 
 type GenerationMode = "ai" | "fallback";
 type FallbackReason = "provider-error" | "deadline";
@@ -51,8 +81,10 @@ async function resilientDraft(input: {
 
   const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeasGrokShaped(input, {
     timeoutMs: AI_PROVIDER_TIMEOUT_MS,
-    featherlessModel: process.env.FEATHERLESS_MODEL?.trim() || FEATHERLESS_FAST_MODEL,
-    openRouterModel: process.env.OPENROUTER_MODEL?.trim() || OPENROUTER_FAST_MODEL,
+    featherlessModel:
+      process.env.SPITBALL_FEATHERLESS_MODEL?.trim() || FEATHERLESS_RELIABLE_MODEL,
+    openRouterModel:
+      process.env.SPITBALL_OPENROUTER_MODEL?.trim() || OPENROUTER_RELIABLE_MODEL,
     fetchImpl: aiFetch,
   })
     .then((draft) => ({ draft, generationMode: "ai" as const }))
