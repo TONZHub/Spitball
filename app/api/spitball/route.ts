@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { buildEmergencyDraft } from "@/lib/ai/emergency";
 import { FeatherlessProviderError } from "@/lib/ai/featherless";
-import { draftPortfolioIdeasSimpleV2 } from "@/lib/ai/simple-draft-v2";
+import { draftPortfolioIdeasGrokShaped } from "@/lib/ai/grok-shaped-draft";
 import { SpitballRequestSchema } from "@/lib/ai/schemas";
 import { GitHubProviderError } from "@/lib/github/client";
 import { loadPublicPortfolio } from "@/lib/github/portfolio";
@@ -11,8 +11,8 @@ import type { DraftPortfolioResult, ExcludedIdea, PortfolioRepository } from "@/
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const AI_PROVIDER_TIMEOUT_MS = 30_000;
-const ANSWER_DEADLINE_MS = 90_000;
+const AI_PROVIDER_TIMEOUT_MS = 25_000;
+const ANSWER_DEADLINE_MS = 35_000;
 
 type GenerationMode = "ai" | "fallback";
 type FallbackReason = "provider-error" | "deadline";
@@ -37,13 +37,13 @@ async function resilientDraft(input: {
     repositories: input.repositories,
   });
 
-  const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeasSimpleV2(input, {
+  const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeasGrokShaped(input, {
     timeoutMs: AI_PROVIDER_TIMEOUT_MS,
   })
     .then((draft) => ({ draft, generationMode: "ai" as const }))
     .catch((error) => {
       const detail = error instanceof Error ? error.message : "Unknown AI provider failure";
-      console.warn("Spitball AI pipeline degraded to deterministic ideas", detail);
+      console.warn("Spitball AI generation degraded to deterministic ideas", detail);
       return {
         draft: emergency,
         generationMode: "fallback" as const,
@@ -55,12 +55,12 @@ async function resilientDraft(input: {
   let deadlineTimer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<ResilientDraftResult>((resolve) => {
     deadlineTimer = setTimeout(() => {
-      console.warn(`Spitball AI pipeline exceeded ${ANSWER_DEADLINE_MS}ms; returning deterministic ideas.`);
+      console.warn(`Spitball AI generation exceeded ${ANSWER_DEADLINE_MS}ms; returning deterministic ideas.`);
       resolve({
         draft: emergency,
         generationMode: "fallback",
         fallbackReason: "deadline",
-        fallbackDetail: `The full provider cascade exceeded ${ANSWER_DEADLINE_MS / 1000} seconds.`,
+        fallbackDetail: `The parallel provider race exceeded ${ANSWER_DEADLINE_MS / 1000} seconds.`,
       });
     }, ANSWER_DEADLINE_MS);
   });
