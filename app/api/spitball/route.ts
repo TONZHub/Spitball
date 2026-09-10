@@ -3,10 +3,15 @@ import { NextResponse } from "next/server";
 import { buildEmergencyDraft } from "@/lib/ai/emergency";
 import { FeatherlessProviderError } from "@/lib/ai/featherless";
 import { draftPortfolioIdeasGrokShaped } from "@/lib/ai/grok-shaped-draft";
-import { SpitballRequestSchema } from "@/lib/ai/schemas";
+import { LiveSpitballRequestSchema } from "@/lib/ai/live-request-schema";
 import { GitHubProviderError } from "@/lib/github/client";
 import { loadPublicPortfolio } from "@/lib/github/portfolio";
-import type { DraftPortfolioResult, ExcludedIdea, PortfolioRepository } from "@/types/spitball";
+import type {
+  BuildDuration,
+  DraftPortfolioResult,
+  ExcludedIdea,
+  PortfolioRepository,
+} from "@/types/spitball";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,7 +74,7 @@ type ResilientDraftResult = {
 async function resilientDraft(input: {
   username: string;
   topic?: string;
-  duration: "weekend" | "one-week" | "one-month" | "over-one-month";
+  duration: BuildDuration;
   repositories: PortfolioRepository[];
   excludedIdeas: ExcludedIdea[];
 }): Promise<ResilientDraftResult> {
@@ -158,7 +163,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const parsed = SpitballRequestSchema.safeParse(raw);
+  const parsed = LiveSpitballRequestSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json(
       {
