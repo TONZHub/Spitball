@@ -5,7 +5,19 @@ export const DURATION_VALUES = [
   "over-one-month",
 ] as const;
 
+// Keep the legacy staged generator's duration union stable while the live
+// single-pass path supports the newer two-week option.
 export type Duration = (typeof DURATION_VALUES)[number];
+
+export const BUILD_DURATION_VALUES = [
+  "weekend",
+  "one-week",
+  "two-weeks",
+  "one-month",
+  "over-one-month",
+] as const;
+
+export type BuildDuration = (typeof BUILD_DURATION_VALUES)[number];
 
 export const IDEA_KIND_VALUES = ["safest", "stretch", "wildcard"] as const;
 export type IdeaKind = (typeof IDEA_KIND_VALUES)[number];
@@ -21,7 +33,7 @@ export type ExcludedIdea = {
 export type SpitballRequest = {
   username: string;
   topic?: string;
-  duration: Duration;
+  duration: BuildDuration;
   excludedIdeas: ExcludedIdea[];
 };
 
@@ -126,7 +138,7 @@ export type SpitballIdea = {
   reusablePieces: string[];
   learningGoals: string[];
   topicFit?: string;
-  duration: Duration;
+  duration: BuildDuration;
   buildPlan: Array<{
     label: string;
     outcome: string;
@@ -149,7 +161,7 @@ export type SpitballRun = {
   input: {
     username: string;
     topic?: string;
-    duration: Duration;
+    duration: BuildDuration;
   };
   portfolio: {
     consideredCount: number;
