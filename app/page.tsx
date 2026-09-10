@@ -32,6 +32,7 @@ type SpitballResponse = {
   recommendationKind: IdeaKind;
   generationMode: "ai" | "fallback";
   fallbackReason?: "provider-error" | "deadline";
+  fallbackDetail?: string;
 };
 
 const durationLabels: Record<Duration, string> = {
@@ -187,7 +188,13 @@ export default function HomePage() {
               <strong>Creative generation did not finish.</strong>{" "}
               {result.fallbackReason === "deadline"
                 ? "The AI pipeline hit its 90-second deadline, so these are deterministic fallback ideas. Try again for a fresh AI-generated set."
-                : "An AI provider failed during this run, so these are deterministic fallback ideas. Try again for a fresh AI-generated set."}
+                : "The configured AI routes failed during this run, so these are deterministic fallback ideas."}
+              {result.fallbackDetail && (
+                <details>
+                  <summary>Technical detail</summary>
+                  <code>{result.fallbackDetail}</code>
+                </details>
+              )}
             </div>
           )}
 
