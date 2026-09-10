@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { buildEmergencyDraft } from "@/lib/ai/emergency";
 import { FeatherlessProviderError } from "@/lib/ai/featherless";
-import { draftPortfolioIdeasSimple } from "@/lib/ai/simple-draft";
+import { draftPortfolioIdeasSimpleV2 } from "@/lib/ai/simple-draft-v2";
 import { SpitballRequestSchema } from "@/lib/ai/schemas";
 import { GitHubProviderError } from "@/lib/github/client";
 import { loadPublicPortfolio } from "@/lib/github/portfolio";
@@ -21,6 +21,7 @@ type ResilientDraftResult = {
   draft: DraftPortfolioResult;
   generationMode: GenerationMode;
   fallbackReason?: FallbackReason;
+  fallbackDetail?: string;
 };
 
 async function resilientDraft(input: {
@@ -36,19 +37,18 @@ async function resilientDraft(input: {
     repositories: input.repositories,
   });
 
-  const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeasSimple(input, {
+  const aiAttempt: Promise<ResilientDraftResult> = draftPortfolioIdeasSimpleV2(input, {
     timeoutMs: AI_PROVIDER_TIMEOUT_MS,
   })
     .then((draft) => ({ draft, generationMode: "ai" as const }))
     .catch((error) => {
-      console.warn(
-        "Spitball AI pipeline degraded to deterministic ideas",
-        error instanceof Error ? error.message : error,
-      );
+      const detail = error instanceof Error ? error.message : "Unknown AI provider failure";
+      console.warn("Spitball AI pipeline degraded to deterministic ideas", detail);
       return {
         draft: emergency,
         generationMode: "fallback" as const,
         fallbackReason: "provider-error" as const,
+        fallbackDetail: detail.slice(0, 800),
       };
     });
 
@@ -60,6 +60,7 @@ async function resilientDraft(input: {
         draft: emergency,
         generationMode: "fallback",
         fallbackReason: "deadline",
+        fallbackDetail: `The full provider cascade exceeded ${ANSWER_DEADLINE_MS / 1000} seconds.`,
       });
     }, ANSWER_DEADLINE_MS);
   });
@@ -151,6 +152,7 @@ export async function POST(request: Request) {
       recommendationKind: generation.draft.preliminaryRecommendationKind,
       generationMode: generation.generationMode,
       ...(generation.fallbackReason ? { fallbackReason: generation.fallbackReason } : {}),
+      ...(generation.fallbackDetail ? { fallbackDetail: generation.fallbackDetail } : {}),
     });
   } catch (error) {
     return errorResponse(error);
