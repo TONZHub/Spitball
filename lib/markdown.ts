@@ -1,8 +1,9 @@
-import type { Duration, SpitballIdea } from "@/types/spitball";
+import type { BuildDuration, SpitballIdea } from "@/types/spitball";
 
-const durationLabels: Record<Duration, string> = {
+const durationLabels: Record<BuildDuration, string> = {
   weekend: "Weekend",
   "one-week": "One Week",
+  "two-weeks": "Two Weeks",
   "one-month": "One Month",
   "over-one-month": "More Than a Month",
 };
